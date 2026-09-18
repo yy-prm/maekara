@@ -444,7 +444,7 @@
 </div>
 
 <script>
-const ICONS = ['🧴','🪥','🛏️','🧹','🧽','🚿','🪒','🌱','🚗','❄️','🔥','🐾','🧺','🗑️','💊','🔋'];
+const ICONS = ['🧴','🪥','🛏️','🧹','🧽','🚿','🚽','🪒','🌱','🚗','❄️','🔥','🐾','🧺','🗑️','💊','🔋'];
 const DEFAULT_CATEGORIES = ['家事','ペット','からだ','くるま','その他'];
 
 let selectedIcon = ICONS[0];
@@ -454,6 +454,7 @@ let items = [];
 let apiUrl = localStorage.getItem('maekara_api_url') || 'https://script.google.com/macros/s/AKfycbxazSqIAdOf78xxg1S6o39p1SCrTj0DlnkwgwkZdbqOgMlsDqRIq70XAy4CXBEzBEgS/exec';
 let myName = localStorage.getItem('maekara_my_name') || '';
 let collapsed = JSON.parse(localStorage.getItem('maekara_collapsed') || '[]');
+let customCategories = JSON.parse(localStorage.getItem('maekara_custom_categories') || '[]');
 
 function iso(d){ return d.toISOString().slice(0,10); }
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
@@ -532,6 +533,7 @@ function categoryOf(item){ return item.category || 'その他'; }
 
 function allCategoriesInUse(){
   const set = new Set(DEFAULT_CATEGORIES);
+  customCategories.forEach(c => set.add(c));
   items.forEach(i => set.add(categoryOf(i)));
   return Array.from(set);
 }
@@ -676,7 +678,12 @@ function pickCategory(c){
 function addNewCategory(){
   const name = prompt('新しいカテゴリ名を入力してください');
   if(name && name.trim()){
-    selectedCategory = name.trim();
+    const trimmed = name.trim();
+    if(!customCategories.includes(trimmed)){
+      customCategories.push(trimmed);
+      localStorage.setItem('maekara_custom_categories', JSON.stringify(customCategories));
+    }
+    selectedCategory = trimmed;
     renderCatChips();
   }
 }
