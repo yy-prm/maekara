@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>マエカラ | 最後にやったの、いつ？</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=M+PLUS+2:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #eef1ec;
+    --card: #ffffff;
+    --ink: #22301f;
+    --ink-soft: #6b7566;
+    --line: #e2e6dd;
+    --moss: #4a5d3f;
+    --moss-deep: #33422b;
+    --clay: #c15c3e;
+    --clay-soft: #f3ddd3;
+    --sand: #f6f2e9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    font-family:'M PLUS 2', sans-serif;
+    color: var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  .phone{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    background: var(--bg);
+    padding: 22px 18px 40px;
+    position:relative;
+  }
+  header{
+    padding: 6px 4px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .eyebrow{
+    font-size:13px;
+    color:var(--ink-soft);
+    letter-spacing:.02em;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#b7bfae;
+    flex-shrink:0;
+  }
+  .dot.on{ background:var(--moss); }
+  .dot.off{ background:var(--clay); }
+  h1{
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:900;
+    font-size:30px;
+    margin:2px 0 0;
+    color:var(--moss-deep);
+    line-height:1.25;
+  }
+  .sub{
+    margin-top:8px;
+    font-size:14px;
+    color:var(--ink-soft);
+  }
+  .gear{
+    border:none;background:var(--card);
+    width:38px;height:38px;border-radius:12px;
+    font-size:17px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+
+  .sync-banner{
+    background:var(--clay-soft);
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:12.5px;
+    color:#7a4128;
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .sync-banner b{ display:block; margin-bottom:2px; font-size:13px; }
+
+  .list{
+    margin-top:6px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    padding:16px 16px 14px;
+    border:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .card.due::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:5px;
+    background: var(--clay);
+  }
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .icon{
+    font-size:26px;
+    width:44px;height:44px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--sand);
+    border-radius:14px;
+    flex-shrink:0;
+  }
+  .card.due .icon{ background:var(--clay-soft); }
+  .meta{ flex:1; min-width:0; }
+  .name{
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    color:var(--moss-deep);
+  }
+  .lastdate{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .lastdate .by{ color:var(--moss); }
+  .del{
+    border:none;background:none;color:var(--ink-soft);
+    font-size:18px; line-height:1; padding:4px; cursor:pointer;
+    opacity:.55;
+  }
+
+  .status-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+  }
+  .elapsed{
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:900;
+    font-size:22px;
+    color:var(--moss);
+  }
+  .card.due .elapsed{ color:var(--clay); }
+  .elapsed span.unit{
+    font-size:13px; font-weight:500; margin-left:2px; color:var(--ink-soft);
+  }
+  .pace{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .did-btn{
+    border:none;
+    background: var(--moss);
+    color:#fff;
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .card.due .did-btn{ background: var(--clay); }
+  .did-btn:active{ transform: scale(0.97); }
+
+  .empty{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .empty .big{
+    font-size:38px; margin-bottom:10px;
+  }
+
+  .add-bar{
+    margin-top:22px;
+  }
+  .add-btn{
+    width:100%;
+    border:1.5px dashed var(--moss);
+    background:transparent;
+    color:var(--moss-deep);
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    padding:15px;
+    border-radius:16px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+
+  .sheet-backdrop{
+    position:fixed; inset:0;
+    background:rgba(30,35,25,0.35);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:20;
+  }
+  .sheet-backdrop.open{ display:flex; }
+  .sheet{
+    background:var(--sand);
+    width:100%;
+    max-width:460px;
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:24px 24px 0 0;
+    padding:22px 20px 28px;
+  }
+  .sheet h2{
+    font-family:'Zen Maru Gothic', sans-serif;
+    margin:0 0 6px;
+    font-size:19px;
+    color:var(--moss-deep);
+  }
+  .sheet .hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:12px 12px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:15px;
+    font-family:'M PLUS 2', sans-serif;
+    color:var(--ink);
+  }
+  .icon-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+  }
+  .icon-opt{
+    aspect-ratio:1;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:20px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .icon-opt.selected{
+    border-color:var(--moss);
+    background: var(--clay-soft);
+  }
+  .sheet-actions{
+    display:flex; gap:10px; margin-top:18px;
+  }
+  .sheet-actions button{
+    flex:1;
+    padding:13px;
+    border-radius:14px;
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    border:none;
+    cursor:pointer;
+  }
+  .cancel-btn{ background:#fff; color:var(--ink-soft); border:1px solid var(--line) !important; }
+  .save-btn{ background:var(--moss); color:#fff; }
+  .status-line{
+    font-size:12px; margin-top:10px; color:var(--ink-soft); text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div>
+      <div class="eyebrow"><span class="dot off" id="syncDot"></span><span id="syncLabel">未接続</span></div>
+      <h1>最後にやったの、<br>いつだっけ？</h1>
+      <div class="sub">記録した日数から、次のペースを見積もります。</div>
+    </div>
+    <button class="gear" onclick="openSettings()">⚙️</button>
+  </header>
+
+  <div class="sync-banner" id="syncBanner" style="display:none;">
+    <b>まだ2人で共有されていません</b>
+    ⚙️から共有用のURLを設定すると、お互いの端末で同じ内容が見られます。
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <div class="add-bar">
+    <button class="add-btn" onclick="openSheet()">＋ 項目を追加</button>
+  </div>
+</div>
+
+<!-- 項目追加シート -->
+<div class="sheet-backdrop" id="backdrop">
+  <div class="sheet">
+    <h2>新しい項目</h2>
+    <div class="field">
+      <label>なにを記録する？</label>
+      <input type="text" id="inpName" placeholder="例：換気扇の掃除">
+    </div>
+    <div class="field">
+      <label>最後にやった日</label>
+      <input type="date" id="inpDate">
+    </div>
+    <div class="field">
+      <label>アイコン</label>
+      <div class="icon-grid" id="iconGrid"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="cancel-btn" onclick="closeSheet()">キャンセル</button>
+      <button class="save-btn" onclick="saveItem()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 共有設定シート -->
+<div class="sheet-backdrop" id="settingsBackdrop">
+  <div class="sheet">
+    <h2>2人で共有する</h2>
+    <div class="hint">
+      Googleアカウントで共有用のURLを1つ発行して、こうたさんと嫁さんの両方の端末にこの画面で貼り付けると、内容が同期されます（設定手順はチャットの案内を参照）。
+    </div>
+    <div class="field">
+      <label>あなたの名前（記録に表示されます）</label>
+      <input type="text" id="inpMyName" placeholder="例：こうた">
+    </div>
+    <div class="field">
+      <label>共有URL（GASのウェブアプリURL）</label>
+      <input type="text" id="inpApiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="sheet-actions">
+      <button class="cancel-btn" onclick="closeSettings()">閉じる</button>
+      <button class="save-btn" onclick="saveSettings()">保存して同期</button>
+    </div>
+    <div class="status-line" id="settingsStatus"></div>
+  </div>
+</div>
+
+<script>
+const ICONS = ['🧴','🪥','🛏️','🧹','🧽','🚿','🪒','🌱','🚗','❄️','🔥','🐾','🧺','🗑️','💊','🔋'];
+let selectedIcon = ICONS[0];
+let items = [];
+let apiUrl = localStorage.getItem('maekara_api_url') || '';
+let myName = localStorage.getItem('maekara_my_name') || '';
+let syncing = false;
+
+function iso(d){ return d.toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadLocal(){
+  try{ return JSON.parse(localStorage.getItem('maekara_items')||'[]'); }
+  catch(e){ return []; }
+}
+function saveLocal(list){ localStorage.setItem('maekara_items', JSON.stringify(list)); }
+
+async function pullFromServer(silent){
+  if(!apiUrl) return;
+  try{
+    const res = await fetch(apiUrl, { method:'GET' });
+    const data = await res.json();
+    items = data;
+    saveLocal(items);
+    setSyncState('on');
+    render();
+  }catch(e){
+    setSyncState('off');
+    if(!silent) items = loadLocal();
+    render();
+  }
+}
+
+async function pushToServer(){
+  saveLocal(items);
+  if(!apiUrl) return;
+  try{
+    await fetch(apiUrl, {
+      method:'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(items)
+    });
+    setSyncState('on');
+  }catch(e){
+    setSyncState('off');
+  }
+}
+
+function setSyncState(state){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  const banner = document.getElementById('syncBanner');
+  if(!apiUrl){
+    dot.className = 'dot off';
+    label.textContent = '未接続';
+    banner.style.display = 'block';
+    return;
+  }
+  banner.style.display = 'none';
+  if(state === 'on'){
+    dot.className = 'dot on';
+    label.textContent = '共有中';
+  }else{
+    dot.className = 'dot off';
+    label.textContent = '接続できません';
+  }
+}
+
+function computePace(item){
+  const sorted = [...item.dates].sort((a,b)=> a.date.localeCompare(b.date));
+  if(sorted.length < 2) return null;
+  const intervals = [];
+  for(let i=1;i<sorted.length;i++){
+    intervals.push(daysBetween(sorted[i-1].date, sorted[i].date));
+  }
+  return { min: Math.min(...intervals), max: Math.max(...intervals) };
+}
+
+function render(){
+  const list = document.getElementById('list');
+  if(items.length === 0){
+    list.innerHTML = '<div class="empty"><div class="big">🌤️</div>忘れっぽいのは、悪いことじゃない。<br>下のボタンから最初の項目を追加しよう。</div>';
+    return;
+  }
+  const today = iso(new Date());
+  list.innerHTML = items.map(item => {
+    const sorted = [...item.dates].sort((a,b)=> a.date.localeCompare(b.date));
+    const last = sorted[sorted.length-1];
+    const elapsed = daysBetween(last.date, today);
+    const pace = computePace(item);
+    let due = false;
+    let paceText = '記録が2回たまるとペースが分かります';
+    if(pace){
+      paceText = `いつも ${pace.min}〜${pace.max}日 ペース`;
+      due = elapsed >= pace.min;
+    }
+    const lastLabel = formatLastDate(last.date) + (last.by ? ` <span class="by">・${escapeHtml(last.by)}</span>` : '');
+    return `
+      <div class="card ${due?'due':''}">
+        <div class="card-top">
+          <div class="icon">${item.icon}</div>
+          <div class="meta">
+            <div class="name">${escapeHtml(item.name)}</div>
+            <div class="lastdate">${lastLabel}</div>
+          </div>
+          <button class="del" onclick="removeItem(${item.id})">✕</button>
+        </div>
+        <div class="status-row">
+          <div>
+            <div class="elapsed">${elapsed}<span class="unit">日経過</span></div>
+            <div class="pace">${paceText}</div>
+          </div>
+          <button class="did-btn" onclick="markDone(${item.id})">今日やった</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatLastDate(dateStr){
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function markDone(id){
+  const item = items.find(i=>i.id===id);
+  if(!item) return;
+  const today = iso(new Date());
+  item.dates.push({ date: today, by: myName || null });
+  pushToServer();
+  render();
+}
+
+function removeItem(id){
+  items = items.filter(i=>i.id!==id);
+  pushToServer();
+  render();
+}
+
+function openSheet(){
+  document.getElementById('inpName').value = '';
+  document.getElementById('inpDate').value = iso(new Date());
+  selectedIcon = ICONS[0];
+  const grid = document.getElementById('iconGrid');
+  grid.innerHTML = ICONS.map(ic => `<div class="icon-opt ${ic===selectedIcon?'selected':''}" data-ic="${ic}" onclick="pickIcon('${ic}')">${ic}</div>`).join('');
+  document.getElementById('backdrop').classList.add('open');
+}
+function pickIcon(ic){
+  selectedIcon = ic;
+  document.querySelectorAll('.icon-opt').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.ic === ic);
+  });
+}
+function closeSheet(){
+  document.getElementById('backdrop').classList.remove('open');
+}
+function saveItem(){
+  const name = document.getElementById('inpName').value.trim();
+  const date = document.getElementById('inpDate').value;
+  if(!name || !date){ alert('項目名と日付を入力してください'); return; }
+  items.push({ id: Date.now(), name, icon: selectedIcon, dates: [{date, by: myName || null}] });
+  pushToServer();
+  closeSheet();
+  render();
+}
+
+function openSettings(){
+  document.getElementById('inpMyName').value = myName;
+  document.getElementById('inpApiUrl').value = apiUrl;
+  document.getElementById('settingsStatus').textContent = '';
+  document.getElementById('settingsBackdrop').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settingsBackdrop').classList.remove('open');
+}
+async function saveSettings(){
+  myName = document.getElementById('inpMyName').value.trim();
+  apiUrl = document.getElementById('inpApiUrl').value.trim();
+  localStorage.setItem('maekara_my_name', myName);
+  localStorage.setItem('maekara_api_url', apiUrl);
+  const statusEl = document.getElementById('settingsStatus');
+  statusEl.textContent = '接続を確認中...';
+  await pullFromServer(true);
+  statusEl.textContent = apiUrl ? '保存しました' : 'ローカル保存モードにしました';
+  setTimeout(closeSettings, 700);
+}
+
+// 初期化
+items = loadLocal();
+render();
+setSyncState(apiUrl ? 'checking' : 'off');
+pullFromServer(true);
+// ゆるく自動同期（相手の更新を拾う）
+setInterval(()=>{ if(apiUrl) pullFromServer(true); }, 20000);
+</script>
+</body>
+</html>
