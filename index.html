@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>マエカラ | 最後にやったの、いつ？</title>
+<title>maekara</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=M+PLUS+2:wght@400;500;700&display=swap');
 
@@ -38,7 +38,7 @@
     position:relative;
   }
   header{
-    padding: 6px 4px 22px;
+    padding: 6px 4px 20px;
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
@@ -62,15 +62,10 @@
   h1{
     font-family:'Zen Maru Gothic', sans-serif;
     font-weight:900;
-    font-size:30px;
+    font-size:32px;
     margin:2px 0 0;
     color:var(--moss-deep);
-    line-height:1.25;
-  }
-  .sub{
-    margin-top:8px;
-    font-size:14px;
-    color:var(--ink-soft);
+    line-height:1.2;
   }
   .gear{
     border:none;background:var(--card);
@@ -93,8 +88,34 @@
   }
   .sync-banner b{ display:block; margin-bottom:2px; font-size:13px; }
 
+  .cat-group{ margin-top:16px; }
+  .cat-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 2px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .cat-header .chev{
+    font-size:11px;
+    color:var(--ink-soft);
+    transition:transform .15s ease;
+  }
+  .cat-header.collapsed .chev{ transform:rotate(-90deg); }
+  .cat-name{
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--moss-deep);
+  }
+  .cat-count{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
   .list{
-    margin-top:6px;
+    margin-top:8px;
     display:flex;
     flex-direction:column;
     gap:12px;
@@ -114,6 +135,13 @@
     left:0; top:0; bottom:0;
     width:5px;
     background: var(--clay);
+  }
+  .card.never::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:5px;
+    background: #b7bfae;
   }
   .card-top{
     display:flex;
@@ -163,6 +191,7 @@
     color:var(--moss);
   }
   .card.due .elapsed{ color:var(--clay); }
+  .card.never .elapsed{ font-size:15px; color:var(--ink-soft); font-weight:700; }
   .elapsed span.unit{
     font-size:13px; font-weight:500; margin-left:2px; color:var(--ink-soft);
   }
@@ -274,6 +303,47 @@
     border-color:var(--moss);
     background: var(--clay-soft);
   }
+  .chip-row{
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .chip{
+    padding:9px 14px;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:13.5px;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .chip.selected{
+    border-color:var(--moss);
+    background:var(--moss);
+    color:#fff;
+  }
+  .chip.add-new{
+    border-style:dashed;
+    color:var(--ink-soft);
+  }
+  .toggle-row{
+    display:flex; gap:8px;
+  }
+  .toggle-opt{
+    flex:1;
+    padding:12px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:13.5px;
+    text-align:center;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:'M PLUS 2', sans-serif;
+  }
+  .toggle-opt.selected{
+    border-color:var(--moss);
+    background:var(--clay-soft);
+    font-weight:700;
+  }
   .sheet-actions{
     display:flex; gap:10px; margin-top:18px;
   }
@@ -299,8 +369,7 @@
   <header>
     <div>
       <div class="eyebrow"><span class="dot off" id="syncDot"></span><span id="syncLabel">未接続</span></div>
-      <h1>最後にやったの、<br>いつだっけ？</h1>
-      <div class="sub">記録した日数から、次のペースを見積もります。</div>
+      <h1>maekara</h1>
     </div>
     <button class="gear" onclick="openSettings()">⚙️</button>
   </header>
@@ -310,7 +379,7 @@
     ⚙️から共有用のURLを設定すると、お互いの端末で同じ内容が見られます。
   </div>
 
-  <div class="list" id="list"></div>
+  <div id="groups"></div>
 
   <div class="add-bar">
     <button class="add-btn" onclick="openSheet()">＋ 項目を追加</button>
@@ -323,15 +392,26 @@
     <h2>新しい項目</h2>
     <div class="field">
       <label>なにを記録する？</label>
-      <input type="text" id="inpName" placeholder="例：換気扇の掃除">
+      <input type="text" id="inpName" placeholder="例：2階の猫砂掃除">
     </div>
     <div class="field">
-      <label>最後にやった日</label>
-      <input type="date" id="inpDate">
+      <label>カテゴリ</label>
+      <div class="chip-row" id="catChips"></div>
     </div>
     <div class="field">
       <label>アイコン</label>
       <div class="icon-grid" id="iconGrid"></div>
+    </div>
+    <div class="field">
+      <label>登録時の状態</label>
+      <div class="toggle-row">
+        <div class="toggle-opt selected" id="toggleDone" onclick="setDoneToggle(true)">今日やった</div>
+        <div class="toggle-opt" id="toggleNotYet" onclick="setDoneToggle(false)">まだやってない（記録なしで追加）</div>
+      </div>
+    </div>
+    <div class="field" id="dateField">
+      <label>最後にやった日</label>
+      <input type="date" id="inpDate">
     </div>
     <div class="sheet-actions">
       <button class="cancel-btn" onclick="closeSheet()">キャンセル</button>
@@ -345,7 +425,7 @@
   <div class="sheet">
     <h2>2人で共有する</h2>
     <div class="hint">
-      Googleアカウントで共有用のURLを1つ発行して、こうたさんと嫁さんの両方の端末にこの画面で貼り付けると、内容が同期されます（設定手順はチャットの案内を参照）。
+      GASで発行した共有URLを両方の端末で同じものに設定すると、内容が同期されます。
     </div>
     <div class="field">
       <label>あなたの名前（記録に表示されます）</label>
@@ -365,11 +445,15 @@
 
 <script>
 const ICONS = ['🧴','🪥','🛏️','🧹','🧽','🚿','🪒','🌱','🚗','❄️','🔥','🐾','🧺','🗑️','💊','🔋'];
+const DEFAULT_CATEGORIES = ['家事','ペット','からだ','くるま','その他'];
+
 let selectedIcon = ICONS[0];
+let selectedCategory = DEFAULT_CATEGORIES[0];
+let doneToggle = true; // true: 今日やった / false: まだやってない
 let items = [];
-let apiUrl = localStorage.getItem('maekara_api_url') || '';
+let apiUrl = localStorage.getItem('maekara_api_url') || 'https://script.google.com/macros/s/AKfycbxazSqIAdOf78xxg1S6o39p1SCrTj0DlnkwgwkZdbqOgMlsDqRIq70XAy4CXBEzBEgS/exec';
 let myName = localStorage.getItem('maekara_my_name') || '';
-let syncing = false;
+let collapsed = JSON.parse(localStorage.getItem('maekara_collapsed') || '[]');
 
 function iso(d){ return d.toISOString().slice(0,10); }
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
@@ -444,45 +528,96 @@ function computePace(item){
   return { min: Math.min(...intervals), max: Math.max(...intervals) };
 }
 
+function categoryOf(item){ return item.category || 'その他'; }
+
+function allCategoriesInUse(){
+  const set = new Set(DEFAULT_CATEGORIES);
+  items.forEach(i => set.add(categoryOf(i)));
+  return Array.from(set);
+}
+
+function toggleCollapse(cat){
+  if(collapsed.includes(cat)){
+    collapsed = collapsed.filter(c=>c!==cat);
+  }else{
+    collapsed.push(cat);
+  }
+  localStorage.setItem('maekara_collapsed', JSON.stringify(collapsed));
+  render();
+}
+
 function render(){
-  const list = document.getElementById('list');
+  const wrap = document.getElementById('groups');
   if(items.length === 0){
-    list.innerHTML = '<div class="empty"><div class="big">🌤️</div>忘れっぽいのは、悪いことじゃない。<br>下のボタンから最初の項目を追加しよう。</div>';
+    wrap.innerHTML = '<div class="empty"><div class="big">🌤️</div>忘れっぽいのは、悪いことじゃない。<br>下のボタンから最初の項目を追加しよう。</div>';
     return;
   }
   const today = iso(new Date());
-  list.innerHTML = items.map(item => {
-    const sorted = [...item.dates].sort((a,b)=> a.date.localeCompare(b.date));
-    const last = sorted[sorted.length-1];
-    const elapsed = daysBetween(last.date, today);
-    const pace = computePace(item);
-    let due = false;
-    let paceText = '記録が2回たまるとペースが分かります';
-    if(pace){
-      paceText = `いつも ${pace.min}〜${pace.max}日 ペース`;
-      due = elapsed >= pace.min;
-    }
-    const lastLabel = formatLastDate(last.date) + (last.by ? ` <span class="by">・${escapeHtml(last.by)}</span>` : '');
+  const cats = allCategoriesInUse().filter(c => items.some(i => categoryOf(i) === c));
+
+  wrap.innerHTML = cats.map(cat => {
+    const catItems = items.filter(i => categoryOf(i) === cat);
+    const isCollapsed = collapsed.includes(cat);
+    const cardsHtml = isCollapsed ? '' : catItems.map(item => renderCard(item, today)).join('');
     return `
-      <div class="card ${due?'due':''}">
-        <div class="card-top">
-          <div class="icon">${item.icon}</div>
-          <div class="meta">
-            <div class="name">${escapeHtml(item.name)}</div>
-            <div class="lastdate">${lastLabel}</div>
-          </div>
-          <button class="del" onclick="removeItem(${item.id})">✕</button>
+      <div class="cat-group">
+        <div class="cat-header ${isCollapsed?'collapsed':''}" onclick="toggleCollapse('${escapeHtml(cat)}')">
+          <span class="chev">▾</span>
+          <span class="cat-name">${escapeHtml(cat)}</span>
+          <span class="cat-count">${catItems.length}件</span>
         </div>
-        <div class="status-row">
-          <div>
-            <div class="elapsed">${elapsed}<span class="unit">日経過</span></div>
-            <div class="pace">${paceText}</div>
-          </div>
-          <button class="did-btn" onclick="markDone(${item.id})">今日やった</button>
-        </div>
+        <div class="list">${cardsHtml}</div>
       </div>
     `;
   }).join('');
+}
+
+function renderCard(item, today){
+  const sorted = [...item.dates].sort((a,b)=> a.date.localeCompare(b.date));
+  const hasHistory = sorted.length > 0;
+  const pace = hasHistory ? computePace(item) : null;
+
+  let stateClass = '';
+  let elapsedHtml = '';
+  let paceText = '';
+  let lastLabel = 'まだ記録がありません';
+
+  if(hasHistory){
+    const last = sorted[sorted.length-1];
+    const elapsed = daysBetween(last.date, today);
+    lastLabel = formatLastDate(last.date) + (last.by ? ` <span class="by">・${escapeHtml(last.by)}</span>` : '');
+    if(pace){
+      paceText = `いつも ${pace.min}〜${pace.max}日 ペース`;
+      if(elapsed >= pace.min) stateClass = 'due';
+    } else {
+      paceText = '記録が2回たまるとペースが分かります';
+    }
+    elapsedHtml = `${elapsed}<span class="unit">日経過</span>`;
+  } else {
+    stateClass = 'never';
+    elapsedHtml = 'まだ未実施';
+    paceText = 'やったら「今日やった」を押してね';
+  }
+
+  return `
+    <div class="card ${stateClass}">
+      <div class="card-top">
+        <div class="icon">${item.icon}</div>
+        <div class="meta">
+          <div class="name">${escapeHtml(item.name)}</div>
+          <div class="lastdate">${lastLabel}</div>
+        </div>
+        <button class="del" onclick="confirmRemove(${item.id})">✕</button>
+      </div>
+      <div class="status-row">
+        <div>
+          <div class="elapsed">${elapsedHtml}</div>
+          <div class="pace">${paceText}</div>
+        </div>
+        <button class="did-btn" onclick="markDone(${item.id})">今日やった</button>
+      </div>
+    </div>
+  `;
 }
 
 function formatLastDate(dateStr){
@@ -499,6 +634,13 @@ function markDone(id){
   render();
 }
 
+function confirmRemove(id){
+  const item = items.find(i=>i.id===id);
+  if(!item) return;
+  if(confirm(`「${item.name}」を完全に削除しますか？\nこの操作は取り消せません。`)){
+    removeItem(id);
+  }
+}
 function removeItem(id){
   items = items.filter(i=>i.id!==id);
   pushToServer();
@@ -509,9 +651,34 @@ function openSheet(){
   document.getElementById('inpName').value = '';
   document.getElementById('inpDate').value = iso(new Date());
   selectedIcon = ICONS[0];
+  selectedCategory = DEFAULT_CATEGORIES[0];
+  doneToggle = true;
+
   const grid = document.getElementById('iconGrid');
   grid.innerHTML = ICONS.map(ic => `<div class="icon-opt ${ic===selectedIcon?'selected':''}" data-ic="${ic}" onclick="pickIcon('${ic}')">${ic}</div>`).join('');
+
+  renderCatChips();
+  setDoneToggle(true);
   document.getElementById('backdrop').classList.add('open');
+}
+function renderCatChips(){
+  const chips = document.getElementById('catChips');
+  const cats = allCategoriesInUse();
+  chips.innerHTML = cats.map(c => `<div class="chip ${c===selectedCategory?'selected':''}" data-cat="${escapeHtml(c)}" onclick="pickCategory('${escapeHtml(c)}')">${escapeHtml(c)}</div>`).join('')
+    + `<div class="chip add-new" onclick="addNewCategory()">＋ 新規</div>`;
+}
+function pickCategory(c){
+  selectedCategory = c;
+  document.querySelectorAll('#catChips .chip').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.cat === c);
+  });
+}
+function addNewCategory(){
+  const name = prompt('新しいカテゴリ名を入力してください');
+  if(name && name.trim()){
+    selectedCategory = name.trim();
+    renderCatChips();
+  }
 }
 function pickIcon(ic){
   selectedIcon = ic;
@@ -519,14 +686,27 @@ function pickIcon(ic){
     el.classList.toggle('selected', el.dataset.ic === ic);
   });
 }
+function setDoneToggle(val){
+  doneToggle = val;
+  document.getElementById('toggleDone').classList.toggle('selected', val);
+  document.getElementById('toggleNotYet').classList.toggle('selected', !val);
+  document.getElementById('dateField').style.display = val ? 'block' : 'none';
+}
 function closeSheet(){
   document.getElementById('backdrop').classList.remove('open');
 }
 function saveItem(){
   const name = document.getElementById('inpName').value.trim();
-  const date = document.getElementById('inpDate').value;
-  if(!name || !date){ alert('項目名と日付を入力してください'); return; }
-  items.push({ id: Date.now(), name, icon: selectedIcon, dates: [{date, by: myName || null}] });
+  if(!name){ alert('項目名を入力してください'); return; }
+
+  let dates = [];
+  if(doneToggle){
+    const date = document.getElementById('inpDate').value;
+    if(!date){ alert('日付を入力してください'); return; }
+    dates = [{ date, by: myName || null }];
+  }
+
+  items.push({ id: Date.now(), name, icon: selectedIcon, category: selectedCategory, dates });
   pushToServer();
   closeSheet();
   render();
